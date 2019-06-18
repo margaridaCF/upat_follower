@@ -282,7 +282,6 @@ void UALCommunication::runMission() {
                 }
             } else {
                 if (reach_tolerance_end_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_end_) {
-                // if (0.1 * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > 0.1) {
                     pub_set_pose_.publish(target_path_.poses.back());
                 } else {
                     land.request.blocking = true;

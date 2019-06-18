@@ -8,7 +8,7 @@
     <arg name="generator_mode" default="0"/>
     <arg name="save_test_data" default="false"/>
     <arg name="save_experiment_data" default="false"/>
-    <arg name="look_ahead" default="1.0"/>
+    <arg name="look_ahead" default="0.4"/>
     <arg name="cruising_speed" default="1.0"/>
 
     <!-- Launch robot id=2 -->
