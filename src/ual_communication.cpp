@@ -28,9 +28,12 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     pnh_.getParam("trajectory", trajectory_);
     pnh_.getParam("path", init_path_name_);
     pnh_.getParam("pkg_name", pkg_name_);
-    pnh_.getParam("reach_tolerance", reach_tolerance_);
+    pnh_.getParam("reach_tolerance_start", reach_tolerance_start_);
+    pnh_.getParam("reach_tolerance_end", reach_tolerance_end_);
     pnh_.getParam("use_class", use_class_);
     pnh_.getParam("generator_mode", generator_mode_);
+    pnh_.getParam("look_ahead", look_ahead_);
+    pnh_.getParam("cruising_speed", cruising_speed_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &UALCommunication::ualPoseCallback, this);
     sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &UALCommunication::ualStateCallback, this);
@@ -230,7 +233,7 @@ void UALCommunication::runMission() {
                 client_prepare_path_.call(prepare_path);
                 target_path_ = prepare_path.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
+            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead_, cruising_speed_);
         }
     }
 
@@ -251,14 +254,19 @@ void UALCommunication::runMission() {
         case 4:  // Flying auto
             if (!end_path_) {
                 if (!on_path_) {
-                    if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
+                    if ((current_p - path0_p).norm() > reach_tolerance_start_ * 2) {
                         pub_set_pose_.publish(target_path_.poses.at(0));
-                    } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_) {
+                    } else if (reach_tolerance_start_ > (current_p - path0_p).norm() && !flag_hover_) {
                         pub_set_pose_.publish(target_path_.poses.front());
-                        on_path_ = true;
+                        static float start_wait = ros::Time::now().toSec();
+                        if (ros::Time::now().toSec() - start_wait > 10) {
+                            on_path_ = true;
+                        } else {
+                            ROS_INFO("Waiting to start [%f] ...", ros::Time::now().toSec() - start_wait);
+                        }
                     }
                 } else {
-                    if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
+                    if (reach_tolerance_end_ * 2 > (current_p - path_end_p).norm()) {
                         pub_set_pose_.publish(target_path_.poses.back());
                         on_path_ = false;
                         end_path_ = true;
@@ -273,7 +281,8 @@ void UALCommunication::runMission() {
                     }
                 }
             } else {
-                if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
+                if (reach_tolerance_end_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_end_) {
+                // if (0.1 * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > 0.1) {
                     pub_set_pose_.publish(target_path_.poses.back());
                 } else {
                     land.request.blocking = true;

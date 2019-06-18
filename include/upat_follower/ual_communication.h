@@ -84,7 +84,7 @@ class UALCommunication {
     // Params
     int uav_id_, generator_mode_;
     bool save_test_, trajectory_, use_class_;
-    double reach_tolerance_;
+    double reach_tolerance_start_, reach_tolerance_end_, look_ahead_, cruising_speed_;
     std::string init_path_name_;
     std::string pkg_name_ = "upat_follower";
 };
