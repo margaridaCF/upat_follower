@@ -68,4 +68,7 @@
             </node>
         </group>
     </group>
+
+    <node pkg="rosbag" type="record" name="rosbag_record" args="/upat_follower/visualization/uav_1/current_path -o $(find upat_follower)/data/log/karting_$(arg trajectory)_$(arg generator_mode)"/>
+   
 </launch>
