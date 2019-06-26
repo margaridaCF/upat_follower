@@ -6,14 +6,14 @@
     <arg name="multi" default="false"/>
     <arg name="pub_rate" default="100.0"/>
     <arg name="path" default="cubic"/>
-    <arg name="reach_tolerance_start" default="1"/>
-    <arg name="reach_tolerance_end" default="0.5"/>
+    <arg name="reach_tolerance_start" default="1.0"/>
+    <arg name="reach_tolerance_end" default="1.0"/>
     <arg name="id" default="1"/>
     <arg name="trajectory" default="false"/>
     <arg name="generator_mode" default="0"/>
     <arg name="save_test_data" default="false"/>
     <arg name="save_experiment_data" default="false"/>
-    <arg name="look_ahead" default="0.4"/>
+    <arg name="look_ahead" default="1.0"/>
     <arg name="cruising_speed" default="1.0"/>
 
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true"/>
@@ -47,6 +47,7 @@
         <group ns="$(arg ns_prefix)$(arg id)">
             <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" output="screen" required="true">
                 <param name="uav_id" value="$(arg id)"/>
+                <param name="ns_prefix" value="$(arg ns_prefix)"/>
                 <param name="save_test_data" value="false"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="path" value="$(arg path)"/>
@@ -60,6 +61,7 @@
             </node>
             <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
                 <param name="uav_id" value="$(arg id)"/>
+                <param name="ns_prefix" value="$(arg ns_prefix)"/>
                 <param name="robot_model" value="$(arg robot_model)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
@@ -69,6 +71,6 @@
         </group>
     </group>
 
-    <node pkg="rosbag" type="record" name="rosbag_record" args="/upat_follower/visualization/uav_1/current_path -o $(find upat_follower)/data/log/karting_$(arg trajectory)_$(arg generator_mode)"/>
-   
+    <!-- <node pkg="rosbag" type="record" name="rosbag_record" args="/upat_follower/visualization/uav_1/current_path -o $(find upat_follower)/data/log/karting_$(arg trajectory)_$(arg generator_mode)"/> -->
+
 </launch>
