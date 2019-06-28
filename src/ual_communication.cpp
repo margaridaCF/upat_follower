@@ -243,13 +243,13 @@ void UALCommunication::runMission() {
     path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
     path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
     switch (ual_state_.state) {
-        case 2:  // Landed armed
-            if (!end_path_) {
-                take_off.request.height = 12.5;
-                take_off.request.blocking = true;
-                client_take_off_.call(take_off);
-            }
-            break;
+        // case 2:  // Landed armed
+        //     if (!end_path_) {
+        //         take_off.request.height = 12.5;
+        //         take_off.request.blocking = true;
+        //         client_take_off_.call(take_off);
+        //     }
+        //     break;
         case 3:  // Taking of
             break;
         case 4:  // Flying auto
@@ -284,6 +284,8 @@ void UALCommunication::runMission() {
             } else {
                 if (reach_tolerance_end_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_end_) {
                     pub_set_pose_.publish(target_path_.poses.back());
+                    current_path_.header.frame_id = ual_pose_.header.frame_id;
+                    current_path_.poses.push_back(ual_pose_);
                 } else {
                     land.request.blocking = true;
                     client_land_.call(land);
