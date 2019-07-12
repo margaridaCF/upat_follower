@@ -43,7 +43,7 @@ class Follower {
 
     void pubMsgs();
     geometry_msgs::TwistStamped out_velocity_;
-    geometry_msgs::TwistStamped getVelocity();
+    geometry_msgs::TwistStamped getVelocity(double current_yaw = 0);
     void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
     void updatePath(nav_msgs::Path _new_target_path);
     void updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path);
@@ -63,8 +63,9 @@ class Follower {
     int calculatePosLookAhead(int _pos_on_path);
     int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters);
     int calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
+    double calculateYawRate(Eigen::Vector2d _current_point, int _pos_look_ahead, double current_yaw);
     void prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead, int _prev_normal);
-    geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path = 0);
+    geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path = 0, double current_yaw = 0);
     std::vector<double> timesToMaxVelPercentage(nav_msgs::Path _init_path, std::vector<double> _times);
     // Node handlers
     ros::NodeHandle nh_, pnh_;
