@@ -19,6 +19,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 #include <upat_follower/follower.h>
+#include <tf/transform_datatypes.h>
 
 namespace upat_follower {
 
@@ -199,12 +200,17 @@ geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current
     double distance = (target_p - _current_point).norm();
     switch (follower_mode_) {
         case 0:
+        {
             unit_vec = (target_p - _current_point) / distance;
             unit_vec = unit_vec / unit_vec.norm();
             out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
             out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
             out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
-            out_vel.twist.angular.z = calculateYawRate(Eigen::Vector2d(_current_point.x(), _current_point.y()), _pos_look_ahead, current_yaw);;
+            double desired_yaw = tf::getYaw(target_path_.poses.at(_pos_look_ahead).pose.orientation);
+            out_vel.twist.angular.z = calculateYawRate(current_yaw, desired_yaw);
+            // ROS_WARN_STREAM("[Follower] From (" << _current_point.x() << ", " << _current_point.y() << ") to (" << target_p.x() << ", " << target_p.y() << ") the yaw is " << desired_yaw << " radians.  Current yaw is " << current_yaw << " ==> " << out_vel.twist.angular.z << "rad/s rate");
+            ROS_WARN_STREAM("[Follower][YAW] From " << current_yaw << "  to " << desired_yaw << "   = rate =>  " << out_vel.twist.angular.z << "rad/s rate");
+            }
             break;
         case 1:
             // hypo_vec = (target_p - _current_point);
@@ -254,14 +260,10 @@ double calculateOrientation(Eigen::Vector2d start, Eigen::Vector2d end)
     return result ;
 }
 
-double Follower::calculateYawRate(Eigen::Vector2d _current_point, int _pos_look_ahead, double current_yaw)
+double Follower::calculateYawRate(double current_yaw, double desired_yaw)
 {
-    
-    Eigen::Vector2d target_p;
-    target_p = Eigen::Vector2d(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y);
-    double desired_yaw = calculateOrientation(_current_point, target_p);
     double dx = desired_yaw - current_yaw;
-    return dx / look_ahead_; 
+    return dx / 3; 
 
 }
 
@@ -358,7 +360,7 @@ geometry_msgs::TwistStamped Follower::getVelocity(double current_yaw) {
                 int normal_pos_on_path = calculatePosOnPath(current_point, search_range_normal_pos, prev_normal_pos_on_path_, target_path_);
                 prev_normal_pos_on_path_ = normal_pos_on_path;
                 pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
-                out_velocity_ = calculateVelocity(current_point, pos_look_ahead, current_yaw);
+                out_velocity_ = calculateVelocity(current_point, pos_look_ahead, 0, current_yaw);
                 if (debug_) {
                     prepareDebug(search_range_normal_pos, normal_pos_on_path, pos_look_ahead, prev_normal_pos_on_path_);
                 }
