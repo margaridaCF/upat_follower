@@ -125,7 +125,7 @@ std::vector<double> Generator::linealInterp1(std::vector<double> &_x, std::vecto
     return y_new;
 }
 
-nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator_mode) {
+nav_msgs::Path Generator::generatePath(nav_msgs::Path & _init_path, int _generator_mode) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z, list_orient_x, list_orient_y, list_orient_z, list_orient_w;
     for (int i = 0; i < _init_path.poses.size(); i++) {
         list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
@@ -243,7 +243,7 @@ bool Generator::generateTrajectoryCb(upat_follower::GenerateTrajectory::Request 
     return true;
 }
 
-std::vector<double> Generator::interpWaypointList(std::vector<double> _list_pose_axis, int _amount_of_points) {
+std::vector<double> Generator::interpWaypointList(std::vector<double> & _list_pose_axis, int _amount_of_points) {
     std::vector<double> aux_axis;
     std::vector<double> new_aux_axis;
     for (int i = 0; i < _list_pose_axis.size(); i++) {
@@ -277,7 +277,7 @@ nav_msgs::Path Generator::constructPath(std::vector<double> _wps_x, std::vector<
     return path_msg;
 }
 
-nav_msgs::Path Generator::createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size) {
+nav_msgs::Path Generator::createPathInterp1(std::vector<double> & _list_x, std::vector<double> & _list_y, std::vector<double> & _list_z, int _path_size, int _new_path_size) {
     nav_msgs::Path interp1_path;
     std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
     if (_path_size > 1) {
@@ -410,7 +410,7 @@ nav_msgs::Path Generator::createTrajectory(std::vector<double> _list_x, std::vec
     return cubic_spline_path;
 }
 
-nav_msgs::Path Generator::pathManagement(std::vector<double> _list_pose_x, std::vector<double> _list_pose_y, std::vector<double> _list_pose_z) {
+nav_msgs::Path Generator::pathManagement(std::vector<double> & _list_pose_x, std::vector<double> & _list_pose_y, std::vector<double> & _list_pose_z) {
     switch (mode_) {
         case mode_interp1_:
             return createPathInterp1(_list_pose_x, _list_pose_y, _list_pose_z, _list_pose_x.size(), interp1_final_size_);

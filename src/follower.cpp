@@ -71,7 +71,7 @@ bool Follower::updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req
     return true;
 }
 
-nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
+nav_msgs::Path Follower::preparePath(nav_msgs::Path & _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
     follower_mode_ = 0;
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_init_path, _generator_mode);
