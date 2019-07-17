@@ -91,6 +91,8 @@ class Follower {
     nav_msgs::Path target_path_, target_vel_path_;
     double look_ahead_, cruising_speed_, max_vel_;
     std::vector<double> generated_times_;
+    double pi = 3.14159265358979323846;
+    double yaw_rate_dt = 1.5;
     // Params
     int uav_id_;
     bool debug_;

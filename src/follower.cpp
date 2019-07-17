@@ -208,8 +208,8 @@ geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current
             out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
             double desired_yaw = tf::getYaw(target_path_.poses.at(_pos_look_ahead).pose.orientation);
             out_vel.twist.angular.z = calculateYawRate(current_yaw, desired_yaw);
-            // ROS_WARN_STREAM("[Follower] From (" << _current_point.x() << ", " << _current_point.y() << ") to (" << target_p.x() << ", " << target_p.y() << ") the yaw is " << desired_yaw << " radians.  Current yaw is " << current_yaw << " ==> " << out_vel.twist.angular.z << "rad/s rate");
-            ROS_WARN_STREAM("[Follower][YAW] From " << current_yaw << "  to " << desired_yaw << "   = rate =>  " << out_vel.twist.angular.z << "rad/s rate");
+            out_vel.twist.angular.z = std::min(out_vel.twist.angular.z, 1.0);
+            out_vel.twist.angular.z = std::max(out_vel.twist.angular.z, -1.0);
             }
             break;
         case 1:
@@ -263,7 +263,12 @@ double calculateOrientation(Eigen::Vector2d start, Eigen::Vector2d end)
 double Follower::calculateYawRate(double current_yaw, double desired_yaw)
 {
     double dx = desired_yaw - current_yaw;
-    return dx / 3; 
+    if( std::abs(dx) > pi)
+    {
+        // Find coterminal angle
+        dx =  -(2*pi - dx);
+    }
+    return dx / yaw_rate_dt; 
 
 }
 
