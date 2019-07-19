@@ -53,6 +53,13 @@ Follower::Follower(int _uav_id, bool _debug) {
 Follower::~Follower() {
 }
 
+void Follower::reset_variables()
+{
+    prev_normal_pos_on_path_ = 0;
+    prev_normal_vel_on_path_ = 0;
+    flag_run_ = false;
+}
+
 void Follower::updatePath(nav_msgs::Path _new_target_path) {
     target_path_ = _new_target_path;
 }
@@ -73,6 +80,7 @@ bool Follower::updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req
 }
 
 nav_msgs::Path Follower::preparePath(nav_msgs::Path & _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
+    reset_variables();
     follower_mode_ = 0;
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_init_path, _generator_mode);

@@ -58,6 +58,7 @@ class Follower {
     bool updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_follower::UpdatePath::Response &_res_path);
     bool updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory);
     // Methods
+    void reset_variables();
     void capMaxVelocities();
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);
