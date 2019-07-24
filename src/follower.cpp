@@ -19,7 +19,6 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 #include <upat_follower/follower.h>
-#include <tf/transform_datatypes.h>
 
 namespace upat_follower {
 
@@ -201,22 +200,18 @@ double Follower::changeLookAhead(int _pos_on_path) {
     return max_vel_ * generated_times_[_pos_on_path];
 }
 
-geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path, double current_yaw) {
+geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path) {
     geometry_msgs::TwistStamped out_vel;
     Eigen::Vector3f target_p, unit_vec, hypo_vec;
     target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
     double distance = (target_p - _current_point).norm();
     switch (follower_mode_) {
         case 0:
-        {
             unit_vec = (target_p - _current_point) / distance;
             unit_vec = unit_vec / unit_vec.norm();
             out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
             out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
             out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
-            double desired_yaw = tf::getYaw(target_path_.poses.at(_pos_look_ahead).pose.orientation);
-            out_vel.twist.angular.z = calculateYawRate(current_yaw, desired_yaw);
-            }
             break;
         case 1:
             // hypo_vec = (target_p - _current_point);
@@ -233,49 +228,6 @@ geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current
     out_vel.header.frame_id = target_path_.header.frame_id;
 
     return out_vel;
-}
-
-double calculateOrientation(Eigen::Vector2d start, Eigen::Vector2d end)
-{
-    double result;
-    Eigen::Vector2d d = end - start;
-    d.normalize();
-
-    double adjacent = d.x();
-    double hipotenuse = d.stableNorm();
-    if(hipotenuse == 0 || std::isnan(hipotenuse))
-    {
-        result = 0;
-    }   
-    else
-    {
-        result = adjacent/hipotenuse ;
-        result = std::acos (result);
-        if(d.y() < 0)
-        {
-            result = 2*M_PI-result; 
-        }
-    } 
-
-    if (result > M_PI)
-    {
-        result =  -(M_PI*2 - result);
-    }
-
-    // ROS_ERROR_STREAM( "[State manager] buildTargetPose from (" << start.x() << ", " << start.y() << ")  to  (" << end.x() << ", " << end.y() << ")  yaw = " << result );
-    return result ;
-}
-
-double Follower::calculateYawRate(double current_yaw, double desired_yaw)
-{
-    double dx = desired_yaw - current_yaw;
-    if      ( dx > pi )  { dx =  -(dx - pi);}
-    else if ( dx < -pi ) { dx = -(dx + pi); }
-    double yaw_rate = dx / yaw_rate_dt; 
-    yaw_rate = std::min(yaw_rate, 1.0);
-    yaw_rate = std::max(yaw_rate, -1.0);
-    return yaw_rate;
-
 }
 
 int Follower::calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters) {
@@ -346,7 +298,7 @@ void Follower::pubMsgs() {
     }
 }
 
-geometry_msgs::TwistStamped Follower::getVelocity(double current_yaw) {
+geometry_msgs::TwistStamped Follower::getVelocity() {
     if (target_path_.poses.size() > 1) {
         Eigen::Vector3f current_point, target_path0_point;
         current_point = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
@@ -372,7 +324,7 @@ geometry_msgs::TwistStamped Follower::getVelocity(double current_yaw) {
                 int normal_pos_on_path = calculatePosOnPath(current_point, search_range_normal_pos, prev_normal_pos_on_path_, target_path_);
                 prev_normal_pos_on_path_ = normal_pos_on_path;
                 pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
-                out_velocity_ = calculateVelocity(current_point, pos_look_ahead, 0, current_yaw);
+                out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
                 if (debug_) {
                     prepareDebug(search_range_normal_pos, normal_pos_on_path, pos_look_ahead, prev_normal_pos_on_path_);
                 }
