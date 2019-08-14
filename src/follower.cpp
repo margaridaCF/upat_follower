@@ -301,23 +301,11 @@ void Follower::pubMsgs() {
 }
 
 geometry_msgs::TwistStamped Follower::getVelocity() {
-    std::ofstream log_file;
-    std::stringstream aux_envvar_home (std::getenv("HOME"));
-    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
-    log_file.open (folder_name + "/follower.log", std::ofstream::app);
 
     if (target_path_.poses.size() > 1) {
         Eigen::Vector3f current_point, target_path0_point;
         current_point = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
-        try
-        {
             target_path0_point = Eigen::Vector3f(target_path_.poses.at(0).pose.position.x, target_path_.poses.at(0).pose.position.y, target_path_.poses.at(0).pose.position.z);
-        }
-        catch (const std::out_of_range& oor)
-        {
-            log_file << "out_of_range at Follower::getVelocity @ 1 " << oor.what() << std::endl;
-            return out_velocity_;
-        }
         if ((current_point - target_path0_point).norm() < 1) {
             flag_run_ = true;
             prev_normal_vel_on_path_ = prev_normal_pos_on_path_ = 0;
@@ -325,8 +313,6 @@ geometry_msgs::TwistStamped Follower::getVelocity() {
         if (flag_run_) {
             int pos_look_ahead;
             if (follower_mode_ == 1) {
-                try
-                {
                 double search_range_vel = look_ahead_ * 1.5;
                 int normal_vel_on_path = calculatePosOnPath(current_point, search_range_vel, prev_normal_vel_on_path_, target_path_);
                 prev_normal_vel_on_path_ = normal_vel_on_path;
@@ -336,48 +322,18 @@ geometry_msgs::TwistStamped Follower::getVelocity() {
                 if (debug_) {
                     prepareDebug(search_range_vel, normal_vel_on_path, pos_look_ahead, prev_normal_vel_on_path_);
                 }
-                }
-                catch (const std::out_of_range& oor)
-                {
-                    log_file << "out_of_range at Follower::getVelocity @ 2 " << oor.what() << std::endl;
-                    return out_velocity_;
-                }
             } else {
                 double search_range_normal_pos = look_ahead_ * 1.5;
-                try
-                {
-                    int normal_pos_on_path = calculatePosOnPath(current_point, search_range_normal_pos, prev_normal_pos_on_path_, target_path_);
-                    prev_normal_pos_on_path_ = normal_pos_on_path;
-                    try
-                    {
-                        pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
-                        try
-                        {
-                            out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
-                        }
-                        catch (const std::out_of_range& oor)
-                        {
-                            log_file << "out_of_range at Follower::getVelocity @ 3 " << oor.what() << std::endl;
-                        }
-                        if (debug_) {
-                            prepareDebug(search_range_normal_pos, normal_pos_on_path, pos_look_ahead, prev_normal_pos_on_path_);
-                        }
-                    }
-                    catch (const std::out_of_range& oor)
-                    {
-                        log_file << "out_of_range at Follower::getVelocity @ 4 " << oor.what() << std::endl;
-                    }
-                    
+                int normal_pos_on_path = calculatePosOnPath(current_point, search_range_normal_pos, prev_normal_pos_on_path_, target_path_);
+                prev_normal_pos_on_path_ = normal_pos_on_path;
+                pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
+                out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
+                if (debug_) {
+                    prepareDebug(search_range_normal_pos, normal_pos_on_path, pos_look_ahead, prev_normal_pos_on_path_);
                 }
-                catch (const std::out_of_range& oor)
-                {
-                    log_file << "out_of_range at Follower::getVelocity @ 5 " << oor.what() << std::endl;
-                }
-                
             }
         }
     }
-    log_file.close();
     return out_velocity_;
 }
 
